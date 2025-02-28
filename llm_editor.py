@@ -316,17 +316,8 @@ def get_gemini_completion(prompt: str) -> str:
         genai.configure(api_key=GEMINI_API_KEY)
         
         # Create a chat session with the model
-        client = genai.Client(api_key=GEMINI_API_KEY)
-        chat = client.chats.create(model='gemini-2.0-flash')
-        
-        # Set system instructions
-        chat.send_message(
-            "You are a helpful assistant that modifies HTML/CSS/JS code according to user instructions.",
-            role="system"
-        )
-        
-        # Send the prompt and get the response
-        response = chat.send_message(prompt)
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        response = model.generate_content()
         
         # Check if we have a valid response
         if response and response.text:
