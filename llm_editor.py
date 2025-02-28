@@ -9,7 +9,6 @@ import logging
 import requests
 from typing import Tuple, Optional, Dict, Any
 from bs4 import BeautifulSoup
-import google.generativeai as genai
 
 # Set up logging
 logging.basicConfig(
@@ -179,18 +178,43 @@ def add_form_back(form_html: str, new_html: str) -> str:
 
 def extract_form(html_content: str) -> Tuple[str, str]:
     """
-    Extract the form from the HTML content
+    Extract the form from the HTML content and ensure all form styling is inlined
     
     Args:
         html_content: HTML content
     
     Returns:
-        Tuple of (form HTML, HTML content without form)
+        Tuple of (form HTML with inline styles, HTML content without form)
     """
     soup = BeautifulSoup(html_content, 'html.parser')
     
+    # Extract all styles to check for form-related styles
+    style_tags = soup.find_all('style')
+    form_styles = {}
+    
+    # Process style tags to find form-related styles
+    for style_tag in style_tags:
+        css_text = style_tag.string
+        if css_text:
+            # Look for form-related selectors
+            form_selectors = ['form', '#prompt-form', '.prompt-form', 
+                             'input[type="text"]', 'button[type="submit"]', 
+                             '.note', 'button']
+            
+            for line in css_text.split('}'):
+                for selector in form_selectors:
+                    if selector in line and '{' in line:
+                        # Extract the selector and its styles
+                        parts = line.split('{')
+                        if len(parts) > 1:
+                            key = parts[0].strip()
+                            value = parts[1].strip()
+                            if key not in form_styles:
+                                form_styles[key] = value
+    
     # Look for a form element first
     form = soup.find('form')
+    form_container = None
     
     # If no form is found, look for input+button combination
     if not form:
@@ -205,26 +229,74 @@ def extract_form(html_content: str) -> Tuple[str, str]:
                     form = parent
                     break
     
-    if not form:
-        # If still no form is found, create a default one
+    # Look for a container div (often has id="prompt-form")
+    if form:
+        # Check if the form is inside a container
+        parent = form.parent
+        if parent.name == 'div' and (parent.get('id') == 'prompt-form' or 'prompt' in str(parent.get('class', ''))):
+            form_container = parent
+    
+    # If no form container is found but we have a form, use the form's parent
+    if form and not form_container:
+        parent = form.parent
+        if parent.name == 'div':
+            form_container = parent
+    
+    # Use the container if found, otherwise use the form
+    target_element = form_container if form_container else form
+    
+    if not target_element:
+        # If still no form is found, create a default one with inline styles
         default_form = """
-        <div id="prompt-form" style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
-            <h3>Modify this webpage</h3>
+        <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #e9ecef;">
+            <h3 style="margin-top: 0; color: #0366d6;">Modify This Webpage</h3>
             <form action="https://github.com/REPO_OWNER/REPO_NAME/issues/new" method="get" target="_blank">
                 <input type="hidden" name="labels" value="prompt">
-                <input type="text" name="body" placeholder="Enter your instructions..." style="width: 70%; padding: 8px; margin-right: 10px;">
-                <button type="submit" style="padding: 8px 15px; background-color: #0366d6; color: white; border: none; border-radius: 3px; cursor: pointer;">Submit</button>
+                <input type="text" name="body" placeholder="Enter your instructions..." style="width: 75%; padding: 10px; margin-right: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 16px;" required>
+                <button type="submit" style="padding: 10px 15px; background-color: #0366d6; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; transition: background-color 0.2s;">Submit</button>
             </form>
-            <p><small>Your request will be processed through GitHub Issues</small></p>
+            <p style="font-size: 14px; color: #6c757d; margin-top: 10px;">Your request will be processed through GitHub Issues and applied automatically.</p>
         </div>
         """
         return default_form.replace("REPO_OWNER", REPO_OWNER).replace("REPO_NAME", REPO_NAME), html_content
     
-    # Extract the form HTML
-    form_html = str(form)
+    # Now inline all the styles for the form and its elements
+    if target_element:
+        # Apply form container styles
+        for selector, styles in form_styles.items():
+            if selector == '#prompt-form' or selector == '.prompt-form' or selector == 'form':
+                current_style = target_element.get('style', '')
+                target_element['style'] = current_style + '; ' + styles if current_style else styles
+        
+        # Apply styles to form elements
+        form_inputs = target_element.find_all('input', {'type': 'text'})
+        for input_elem in form_inputs:
+            for selector, styles in form_styles.items():
+                if selector == 'input[type="text"]' or selector == 'input':
+                    current_style = input_elem.get('style', '')
+                    input_elem['style'] = current_style + '; ' + styles if current_style else styles
+        
+        form_buttons = target_element.find_all('button')
+        for button_elem in form_buttons:
+            for selector, styles in form_styles.items():
+                if selector == 'button' or selector == 'button[type="submit"]':
+                    current_style = button_elem.get('style', '')
+                    button_elem['style'] = current_style + '; ' + styles if current_style else styles
+        
+        # Apply styles to note paragraph if it exists
+        notes = target_element.find_all('p')
+        for note in notes:
+            if 'note' in str(note.get('class', '')):
+                for selector, styles in form_styles.items():
+                    if selector == '.note' or selector == 'p.note':
+                        current_style = note.get('style', '')
+                        note['style'] = current_style + '; ' + styles if current_style else styles
+    
+    # Extract the form HTML with inline styles
+    form_html = str(target_element)
     
     # Remove the form from the HTML
-    form.extract()
+    target_element.extract()
     
     return form_html, str(soup)
 
@@ -243,10 +315,17 @@ def get_gemini_completion(prompt: str) -> str:
         genai.configure(api_key=GEMINI_API_KEY)
         
         # Create a chat session with the model
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        chat = client.chats.create(model='gemini-2.0-flash')
+        
+        # Set system instructions
+        chat.send_message(
+            "You are a helpful assistant that modifies HTML/CSS/JS code according to user instructions.",
+            role="system"
+        )
         
         # Send the prompt and get the response
-        response = model.generate_content(prompt)
+        response = chat.send_message(prompt)
         
         # Check if we have a valid response
         if response and response.text:
