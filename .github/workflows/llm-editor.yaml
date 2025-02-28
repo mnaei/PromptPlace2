@@ -2,7 +2,7 @@ name: LLM Website Editor
 
 on:
   issues:
-    types: [opened, labeled]
+    types: [labeled]
 
 # Ensure we don't have multiple workflows running in parallel on the same issue
 # This prevents race conditions when multiple issues are created or updated quickly
