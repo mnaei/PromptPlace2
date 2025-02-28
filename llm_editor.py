@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import re
 import sys
@@ -132,6 +133,7 @@ def extract_html_from_llm_response(response_text: str) -> str:
     # If we got here, we couldn't extract anything that looks like HTML
     raise HTMLExtractionError("Could not extract HTML from LLM response")
 
+
 def add_form_back(form_html: str, new_html: str) -> str:
     """
     Add the form back into the HTML content
@@ -172,7 +174,7 @@ def add_form_back(form_html: str, new_html: str) -> str:
             for tag in content_soup.find_all(['div', 'section', 'p', 'h1', 'h2', 'h3', 'script', 'style']):
                 soup.body.append(tag)
     
-    return str(soup)#!/usr/bin/env python3
+    return str(soup)
 
 def extract_form(html_content: str) -> Tuple[str, str]:
     """
@@ -227,7 +229,7 @@ def extract_form(html_content: str) -> Tuple[str, str]:
 
 def get_gemini_completion(prompt: str) -> str:
     """
-    Get a completion from the Gemini API
+    Get a completion from the Gemini API using Google's genai library
     
     Args:
         prompt: The prompt to send to the API
@@ -235,57 +237,30 @@ def get_gemini_completion(prompt: str) -> str:
     Returns:
         The model's response
     """
-    # Add API key as query parameter
-    url = f"{GEMINI_API_URL}?key={GEMINI_API_KEY}"
-    
-    headers = {
-        "Content-Type": "application/json"
-    }
-    
-    data = {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [
-                    {
-                        "text": "You are a helpful assistant that modifies HTML/CSS/JS code according to user instructions."
-                    }
-                ]
-            },
-            {
-                "role": "user",
-                "parts": [
-                    {
-                        "text": prompt
-                    }
-                ]
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0.7,
-            "maxOutputTokens": 4000
-        }
-    }
-    
     try:
-        response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()
-        result = response.json()
+        # Configure the client
+        genai.configure(api_key=GEMINI_API_KEY)
         
-        if "candidates" in result and len(result["candidates"]) > 0:
-            # Navigate through the response structure to get the text content
-            candidate = result["candidates"][0]
-            if "content" in candidate and "parts" in candidate["content"]:
-                parts = candidate["content"]["parts"]
-                if parts and "text" in parts[0]:
-                    return parts[0]["text"]
-            
-            # If we couldn't find the text in the expected structure, raise an error
-            raise GeminiAPIError("Unable to extract text from Gemini API response")
+        # Create a chat session with the model
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        chat = client.chats.create(model='gemini-2.0-flash')
+        
+        # Set system instructions
+        chat.send_message(
+            "You are a helpful assistant that modifies HTML/CSS/JS code according to user instructions.",
+            role="system"
+        )
+        
+        # Send the prompt and get the response
+        response = chat.send_message(prompt)
+        
+        # Check if we have a valid response
+        if response and response.text:
+            return response.text
         else:
             raise GeminiAPIError("No completion returned from Gemini API")
     
-    except requests.RequestException as e:
+    except Exception as e:
         raise GeminiAPIError(f"Gemini API request failed: {str(e)}")
 
 def create_prompt(html_content: str, user_instructions: str) -> str:
