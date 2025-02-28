@@ -317,7 +317,7 @@ def get_gemini_completion(prompt: str) -> str:
         
         # Create a chat session with the model
         model = genai.GenerativeModel('gemini-2.0-flash')
-        response = model.generate_content()
+        response = model.generate_content(prompt)
         
         # Check if we have a valid response
         if response and response.text:
