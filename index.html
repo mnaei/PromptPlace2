@@ -1,33 +1,34 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LLM Editable Webpage</title>
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LLM Editable Webpage</title>
+<style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: black;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
-        
+
         #prompt-form {
             background-color: #f8f9fa;
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             border: 1px solid #e9ecef;
         }
-        
+
         #prompt-form h2 {
             margin-top: 0;
-            color: #0366d6;
+            color: green;
         }
-        
+
         #prompt-form input[type="text"] {
             width: 75%;
             padding: 10px;
@@ -36,7 +37,7 @@
             border-radius: 4px;
             font-size: 16px;
         }
-        
+
         #prompt-form button {
             padding: 10px 15px;
             background-color: #0366d6;
@@ -47,66 +48,77 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
-        
+
         #prompt-form button:hover {
             background-color: #0056b3;
         }
-        
+
         #prompt-form .note {
             font-size: 14px;
             color: #6c757d;
             margin-top: 10px;
         }
-        
+
         .content {
             background-color: white;
             border-radius: 8px;
             padding: 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-        
+
         h1 {
-            color: #0366d6;
+            color: green;
             border-bottom: 2px solid #e9ecef;
             padding-bottom: 10px;
         }
+
+        h2 {
+            color: green;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            color: green;
+        }
+
     </style>
 </head>
-<body>
-    <div id="prompt-form">
-        <h2>Modify This Webpage</h2>
-        <form action="https://github.com/mnaei/PromptPlace2/issues/new" method="get" target="_blank">
-            <input type="hidden" name="labels" value="prompt">
-            <input type="text" name="body" placeholder="Enter your instructions to change this webpage..." required>
-            <button type="submit">Submit</button>
-        </form>
-        <p class="note">Your request will be processed through GitHub Issues and applied automatically.</p>
-    </div>
-
-    <div class="content">
-        <h1>Welcome to the LLM Editable Webpage</h1>
-        
-        <p>This webpage can be modified using natural language instructions. Simply enter your request in the form above, and our system will use the Gemini API to automatically update this page based on your instructions.</p>
-        
-        <h2>How It Works</h2>
-        <ol>
-            <li>Enter your instructions in the text box above</li>
-            <li>Click "Submit" to create a GitHub issue with your request</li>
-            <li>A GitHub Actions workflow will process your request</li>
-            <li>The workflow uses Gemini to convert your instructions into HTML/CSS/JS</li>
-            <li>The changes are automatically committed to the repository</li>
-            <li>This page will be updated to reflect your requested changes</li>
-        </ol>
-        
-        <h2>Example Instructions</h2>
-        <ul>
-            <li>"Add a photo gallery section with 3 placeholder images"</li>
-            <li>"Change the background color to light blue and add a footer"</li>
-            <li>"Create a navigation menu at the top with Home, About, and Contact links"</li>
-            <li>"Add a contact form with name, email, and message fields"</li>
-        </ul>
-        
-        <p><strong>Note:</strong> Before using this page in production, remember to update the form action URL with your actual GitHub repository details (replace REPO_OWNER/REPO_NAME).</p>
-    </div>
+<body><form action="https://github.com/mnaei/PromptPlace2/issues/new" method="get" target="_blank">
+<input name="labels" type="hidden" value="prompt"/>
+<input name="body" placeholder="Enter your instructions to change this webpage..." required="" type="text"/>
+<button type="submit">Submit</button>
+</form>
+<div id="prompt-form">
+<h2>Modify This Webpage</h2>
+<p class="note">Your request will be processed through GitHub Issues and applied automatically.</p>
+</div>
+<div class="content">
+<h1>Welcome to the LLM Editable Webpage</h1>
+<p>This webpage can be modified using natural language instructions. Simply enter your request in the form above, and our system will use the Gemini API to automatically update this page based on your instructions.</p>
+<h2>How It Works</h2>
+<ol>
+<li>Enter your instructions in the text box above</li>
+<li>Click "Submit" to create a GitHub issue with your request</li>
+<li>A GitHub Actions workflow will process your request</li>
+<li>The workflow uses Gemini to convert your instructions into HTML/CSS/JS</li>
+<li>The changes are automatically committed to the repository</li>
+<li>This page will be updated to reflect your requested changes</li>
+</ol>
+<h2>Example Instructions</h2>
+<ul>
+<li>"Add a photo gallery section with 3 placeholder images"</li>
+<li>"Change the background color to light blue and add a footer"</li>
+<li>"Create a navigation menu at the top with Home, About, and Contact links"</li>
+<li>"Add a contact form with name, email, and message fields"</li>
+</ul>
+<p><strong>Note:</strong> Before using this page in production, remember to update the form action URL with your actual GitHub repository details (replace REPO_OWNER/REPO_NAME).</p>
+</div>
+<footer>
+<p>© 2024 LLM Editable Webpage. All rights reserved.</p>
+</footer>
 </body>
 </html>
