@@ -243,7 +243,7 @@ def get_gemini_completion(prompt: str) -> str:
         genai.configure(api_key=GEMINI_API_KEY)
         
         # Create a chat session with the model
-        model = genai.GenerativeModel(model='gemini-2.0-flash')
+        model = genai.GenerativeModel('gemini-2.0-flash')
         
         # Send the prompt and get the response
         response = model.generate_content(prompt)
