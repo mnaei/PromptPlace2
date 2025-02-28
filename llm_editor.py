@@ -9,6 +9,7 @@ import logging
 import requests
 from typing import Tuple, Optional, Dict, Any
 from bs4 import BeautifulSoup
+import google.generativeai as genai
 
 # Set up logging
 logging.basicConfig(
