@@ -8,7 +8,7 @@ on:
 # This prevents race conditions when multiple issues are created or updated quickly
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.issue.number || github.run_id }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   process-prompt:
